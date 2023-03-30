@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "start": "webpack-dev-server --open",
-    "watch": "webpack-dev-server --watch --progress",
+    "watch": "webpack --watch --progress",
     "format": "prettier --ignore-path .gitignore --write '**/*.js'"
   },
   "author": "Noah MacDonald <noahmac@google.com>",
