@@ -5,6 +5,8 @@ import { ComparisonDataPoint } from './ComparisonDataPoint'
 import ReactHtmlParser from 'react-html-parser';
 import DOMPurify from 'dompurify';
 
+import { thousandsSepAndDecimal } from '../common'
+
 
 const DataPointsWrapper = styled.div`
   font-family: "Google Sans", "Roboto", "Noto Sans JP", "Noto Sans", "Noto Sans CJK KR", Helvetica, Arial, sans-serif;
@@ -172,8 +174,13 @@ class MultipleValue extends React.PureComponent {
                     color={config[`style_${dataPoint.name}`]}
                     onClick={() => { this.handleClick(dataPoint, event) }}
                     layout={this.getLayout()}
-                  >                  
-                  { dataPoint.html ? ReactHtmlParser(DOMPurify.sanitize(dataPoint.html)) : dataPoint.formattedValue  } 
+                  >       
+                  {/* { dataPoint.html ? ReactHtmlParser(DOMPurify.sanitize(dataPoint.html)) : dataPoint.formattedValue  }  */}
+                  {
+                    dataPoint.html ?
+                      thousandsSepAndDecimal(ReactHtmlParser(DOMPurify.sanitize(dataPoint.html)), dataPoint.isNumeric, config) :
+                      thousandsSepAndDecimal(dataPoint.formattedValue, dataPoint.isNumeric, config)
+                  }
                   </DataPointValue>
                 </DataPoint>
                 {!compDataPoint ? null : (

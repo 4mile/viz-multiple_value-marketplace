@@ -1,6 +1,12 @@
 import React from 'react'
 import * as d3 from 'd3'
 import _ from 'lodash'
+import SSF from "ssf";
+
+export const CHAR_COMMA = ','
+export const CHAR_PERIOD = '.'
+export const CHAR_SPACE = ' '
+export const CHAR_NONE = 'NONE'
 
 export const formatType = (valueFormat) => {
   if (typeof valueFormat != "string") {
@@ -142,4 +148,63 @@ export const darken = (color, amount) =>{
   color = (color.indexOf("#")>=0) ? color.substring(1,color.length) : color;
   amount = parseInt((255*amount)/100);
   return color = `#${subtractLight(color.substring(0,2), amount)}${subtractLight(color.substring(2,4), amount)}${subtractLight(color.substring(4,6), amount)}`;
+}
+
+/**
+ * This function will find all indices of a character in a string
+ * @param {*} str 
+ * @param {*} char 
+ * @returns number[]
+ */
+export function charPos(str, char) {
+  if (!str) {
+    return []
+  }
+
+  return str.split('')
+    .map((c, i) => {
+      if (c == char) return i;
+    })
+    .filter(f => f >= 0)
+}
+
+/**
+ * Optionally apply a different thousands separator and/or decimal point character
+ * @param {*} data 
+ * @param {*} config 
+ */
+export function thousandsSepAndDecimal(data, isNumeric, config) {
+  if (!data) {
+    return ''
+  }
+
+  if (!isNumeric && (thousands_separator !== CHAR_COMMA || decimal_point !== CHAR_PERIOD)) {
+    return data
+  }
+
+  let targetData = data
+  if (_.isArray(data)) {
+    [targetData] = data
+  }
+
+  const { thousands_separator, decimal_point} = config
+  
+  const commaPositions = charPos(targetData, CHAR_COMMA)
+  const decimalPointPositions = charPos(targetData, CHAR_PERIOD)
+
+  let parts = (targetData || '').split('')
+  
+  if (thousands_separator !== CHAR_COMMA && commaPositions.length > 0) {
+    commaPositions.forEach((pos) => {
+      parts[pos] = thousands_separator
+    })
+  }
+
+  if (decimal_point !== CHAR_PERIOD && decimalPointPositions.length > 0) {
+    decimalPointPositions.forEach((pos) => {
+      parts[pos] = decimal_point
+    })
+  }
+
+  return parts.join('')
 }

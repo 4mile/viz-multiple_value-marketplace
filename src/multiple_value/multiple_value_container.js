@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import isEqual from 'lodash/isEqual'
 import MultipleValue from './multiple_value'
 import SSF from "ssf";
-import { CHAR_COMMA, CHAR_PERIOD, CHAR_SPACE, ssfFormattingWrapper } from '../common';
+import { CHAR_COMMA, CHAR_PERIOD, CHAR_SPACE } from '../common';
 
 const baseOptions = {
   font_size_main: {
@@ -38,7 +38,7 @@ const baseOptions = {
       {'Period': CHAR_PERIOD},
       {'Space': CHAR_SPACE}
     ],
-    default_value: CHAR_COMMA,
+    selected: CHAR_COMMA,
     order: 1,
   },
   decimal_point: {
@@ -50,7 +50,7 @@ const baseOptions = {
       {'Comma': CHAR_COMMA},
       {'Period': CHAR_PERIOD}
     ],
-    default_value: CHAR_PERIOD,
+    selected: CHAR_PERIOD,
     order: 2,
   }
 }
@@ -108,61 +108,57 @@ looker.plugins.visualizations.add({
 
     let firstRow = data[0];
 
-    console.log(firstRow)
-
     const dataPoints = measures.map(measure => {
       return ({
         name: measure.name,
         label: measure.label_short || measure.label,
         value: firstRow[measure.name].value,
         link: firstRow[measure.name].links,
+        isNumeric: measure.is_numeric || false,
         valueFormat: config[`value_format`],
         formattedValue: config[`value_format_${measure.name}`] === "" || config[`value_format_${measure.name}`] === undefined ? 
           LookerCharts.Utils.textForCell(firstRow[measure.name]) :
-          ssfFormattingWrapper(
-            SSF.format(config[`value_format_${measure.name}`], firstRow[measure.name].value),
-            config.thousands_separator,
-            config.decimal_point
-          ),
+          SSF.format(config[`value_format_${measure.name}`], firstRow[measure.name].value),
         html: firstRow[measure.name].html
       })
     });
 
     const options = Object.assign({}, baseOptions)
+
+    // horizontal divider
+    if (config.orientation === "horizontal") {
+      options.dividers = {
+        type: 'boolean',
+        label: `Dividers between values?`,
+        default: false,
+        section: 'Style',
+        order: 3,
+      }
+    }
     
     dataPoints.forEach((dataPoint, index) => {
-      //Style -- apply to all
-      if (config.orientation === "horizontal") {
-        options.dividers = {
-          type: 'boolean',
-          label: `Dividers between values?`,
-          default: false,
-          section: 'Style',
-          order: 1,
-        }
-      }
       if (config[`show_comparison_${dataPoint.name}`] !== true) {
+        options[`show_title_${dataPoint.name}`] = {
+          type: 'boolean',
+          label: `${dataPoint.label} - Show Title`,
+          default: true,
+          section: 'Style',
+          order: 10 * index + 4,
+        },
         options[`style_${dataPoint.name}`] = {
           type: `string`,
           label: `${dataPoint.label} - Color`,
           display: `color`,
           default: '#3A4245',
           section: 'Style',
-          order: 10 * index + 3,
-        }
-        options[`show_title_${dataPoint.name}`] = {
-          type: 'boolean',
-          label: `${dataPoint.label} - Show Title`,
-          default: true,
-          section: 'Style',
-          order: 10 * index + 2,
-        }
+          order: 10 * index + 5,
+        },
         options[`title_override_${dataPoint.name}`] = {
           type: 'string',
           label: `${dataPoint.label} - Title`,
           section: 'Style',
           placeholder: dataPoint.label,
-          order: 10 * index + 4,
+          order: 10 * index + 6,
         }
         options[`title_placement_${dataPoint.name}`] = {
           type: 'string',
@@ -174,14 +170,14 @@ looker.plugins.visualizations.add({
             {'Below number': 'below'},
           ],
           default: 'above',
-          order: 10 * index + 5,
+          order: 10 * index + 7,
         }
         options[`value_format_${dataPoint.name}`] = {
           type: 'string',
           label: `${dataPoint.label} - Value Format`,
           section: 'Style',
           default: "",
-          order: 10 * index + 6
+          order: 10 * index + 8
         }
       }
       // Comparison - all data points other than the first
