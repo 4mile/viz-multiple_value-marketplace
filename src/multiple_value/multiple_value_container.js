@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import isEqual from 'lodash/isEqual'
 import MultipleValue from './multiple_value'
 import SSF from "ssf";
+import { CHAR_COMMA, CHAR_PERIOD, CHAR_SPACE, ssfFormattingWrapper } from '../common';
 
 const baseOptions = {
   font_size_main: {
@@ -27,6 +28,31 @@ const baseOptions = {
     order: 0,
     display_size: 'half'
   },
+  thousands_separator: {
+    label: 'Thousands Separator',
+    type: 'string',
+    section: 'Style',
+    display: 'select',
+    values: [
+      {'Comma': CHAR_COMMA},
+      {'Period': CHAR_PERIOD},
+      {'Space': CHAR_SPACE}
+    ],
+    default_value: CHAR_COMMA,
+    order: 1,
+  },
+  decimal_point: {
+    label: 'Decimal Point',
+    type: 'string',
+    section: 'Style',
+    display: 'select',
+    values: [
+      {'Comma': CHAR_COMMA},
+      {'Period': CHAR_PERIOD}
+    ],
+    default_value: CHAR_PERIOD,
+    order: 2,
+  }
 }
 
 let currentOptions = {}
@@ -82,6 +108,8 @@ looker.plugins.visualizations.add({
 
     let firstRow = data[0];
 
+    console.log(firstRow)
+
     const dataPoints = measures.map(measure => {
       return ({
         name: measure.name,
@@ -89,7 +117,13 @@ looker.plugins.visualizations.add({
         value: firstRow[measure.name].value,
         link: firstRow[measure.name].links,
         valueFormat: config[`value_format`],
-        formattedValue: config[`value_format_${measure.name}`] === "" || config[`value_format_${measure.name}`] === undefined ? LookerCharts.Utils.textForCell(firstRow[measure.name]) : SSF.format(config[`value_format_${measure.name}`], firstRow[measure.name].value),
+        formattedValue: config[`value_format_${measure.name}`] === "" || config[`value_format_${measure.name}`] === undefined ? 
+          LookerCharts.Utils.textForCell(firstRow[measure.name]) :
+          ssfFormattingWrapper(
+            SSF.format(config[`value_format_${measure.name}`], firstRow[measure.name].value),
+            config.thousands_separator,
+            config.decimal_point
+          ),
         html: firstRow[measure.name].html
       })
     });
